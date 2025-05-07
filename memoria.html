@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jogo da Memória - Caatinga</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      touch-action: manipulation;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: url('/assets/bg-caatinga.jpg') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+
+    h1 {
+      font-size: clamp(20px, 3vw, 48px);
+      color: #33691e;
+      text-align: center;
+      margin-bottom: 10px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    #timer, #bestTime {
+      font-size: clamp(16px, 2vw, 32px);
+      color: #33691e;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 5px 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+    }
+
+    #sidePanel {
+      display: flex;
+      gap: 10px;
+    }
+
+    #restartBtn, #infoBtn {
+      padding: 10px 20px;
+      font-size: clamp(14px, 1.5vw, 24px);
+      background-color: #aed581;
+      color: #33691e;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #game {
+      display: grid;
+      gap: 1.5vmin;
+      width: clamp(300px, 70vmin, 600px);
+      height: clamp(300px, 70vmin, 600px);
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .card {
+      perspective: 1000px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      color: azure;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(12px, 2vmin, 20px);
+      font-weight: bold;
+      overflow: hidden;
+    }
+
+    .card-front {
+      background-color: #a5d6a7;
+    }
+
+    .card-back {
+      background-color: #795548;
+      transform: rotateY(180deg);
+    }
+
+    .card img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .card.matched {
+      pointer-events: none;
+      animation: glow 1s ease forwards;
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 0px yellow; }
+      100% { box-shadow: 0 0 20px 10px yellow; opacity: 0.5; }
+    }
+
+    .card.wrong {
+      animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+    }
+
+    #successModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #successModal .modal-content, #infoModal .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: clamp(16px, 2vw, 24px);
+      color: #33691e;
+    }
+
+    #successModal button, #infoModal button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1.5vw;
+      background-color: #a5d6a7;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #infoModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .btn-voltar {
+    display: inline-block;
+    margin: 1rem;
+    padding: 0.6rem 1rem;
+    background-color: #d7ccc8;
+    color: #4e342e;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 8px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    transition: background 0.3s, transform 0.2s;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .btn-voltar:hover {
+    background-color: #a1887f;
+    color: #fff;
+    transform: scale(1.05);
+  }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="btn-voltar">← Voltar</a>
+
+<h1>Jogo da Memória da Caatinga</h1>
+<div id="timer">Tempo: 0s</div>
+<div id="bestTime">Melhor tempo: --</div>
+
+<div class="main-container">
+  <div id="sidePanel">
+    <button id="restartBtn" onclick="restartGame()">Reiniciar</button>
+    <button id="infoBtn" onclick="document.getElementById('infoModal').style.display='flex'">Info</button>
+  </div>
+
+  <div id="game"></div>
+</div>
+
+<div id="successModal">
+  <div class="modal-content">
+    <p>Parabéns! Você concluiu o jogo.</p>
+    <p id="finalTime"></p>
+    <button onclick="restartGame()">Jogar novamente</button>
+  </div>
+</div>
+
+<div id="infoModal">
+  <div class="modal-content">
+    <p><strong>Bioma Caatinga:</strong> É um bioma exclusivamente brasileiro, rico em biodiversidade e adaptado às condições semiáridas do nordeste. Abriga espécies resistentes à seca como o mandacaru, a jurema e animais como o tatu, o tamanduá e a onça.</p>
+    <button onclick="document.getElementById('infoModal').style.display='none'">Fechar</button>
+  </div>
+</div>
+
+<script>
+const animals = [
+  { name: 'Tatu', img: '/assets/animais/tatu.png' },
+  { name: 'Tamanduá', img: '/assets/animais/tamandua.png' },
+  { name: 'Sabiá', img: '/assets/animais/sabia.png' },
+  { name: 'Onça', img: '/assets/animais/onca.png' },
+  { name: 'Cascavél', img: '/assets/animais/cascavel.png' },
+  { name: 'Urubu', img: '/assets/animais/urubu.png' }
+];
+
+let cards = [];
+animals.forEach(animal => {
+  cards.push({ type: 'name', content: animal.name, match: animal.name });
+  cards.push({ type: 'image', content: animal.img, match: animal.name });
+});
+
+// Fisher-Yates Shuffle
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+shuffle(cards);
+
+const game = document.getElementById('game');
+let flippedCards = [];
+let matched = [];
+let seconds = 0;
+
+let best = localStorage.getItem('bestTime');
+if (best) {
+  document.getElementById('bestTime').textContent = `Melhor tempo: ${best}s`;
+}
+
+let timerInterval = setInterval(() => {
+  seconds++;
+  document.getElementById('timer').textContent = `Tempo: ${seconds}s`;
+}, 1000);
+
+cards.forEach((card, index) => {
+  const cardWrapper = document.createElement('div');
+  cardWrapper.classList.add('card');
+  cardWrapper.dataset.match = card.match;
+  cardWrapper.dataset.type = card.type;
+
+  const cardInner = document.createElement('div');
+  cardInner.classList.add('card-inner');
+
+  const front = document.createElement('div');
+  front.classList.add('card-face', 'card-front');
+
+  const back = document.createElement('div');
+  back.classList.add('card-face', 'card-back');
+
+  if (card.type === 'name') {
+    back.textContent = card.content;
+  } else {
+    const img = document.createElement('img');
+    img.src = card.content;
+    back.appendChild(img);
+  }
+
+  cardInner.appendChild(front);
+  cardInner.appendChild(back);
+  cardWrapper.appendChild(cardInner);
+
+  cardWrapper.addEventListener('click', () => flipCard(cardWrapper));
+  game.appendChild(cardWrapper);
+});
+
+function flipCard(cardElement) {
+  if (flippedCards.length === 2 ||
+      cardElement.classList.contains('matched') ||
+      flippedCards.includes(cardElement)) return;
+
+  cardElement.classList.add('flipped');
+  flippedCards.push(cardElement);
+
+  if (flippedCards.length === 2) {
+    const [c1, c2] = flippedCards;
+    const match1 = c1.dataset.match;
+    const match2 = c2.dataset.match;
+    const type1 = c1.dataset.type;
+    const type2 = c2.dataset.type;
+
+    if (match1 === match2 && type1 !== type2) {
+      c1.classList.add('matched');
+      c2.classList.add('matched');
+      matched.push(match1);
+      checkSuccess();
+    } else {
+      c1.classList.add('wrong');
+      c2.classList.add('wrong');
+      setTimeout(() => {
+        c1.classList.remove('flipped', 'wrong');
+        c2.classList.remove('flipped', 'wrong');
+      }, 1000);
+    }
+    setTimeout(() => flippedCards = [], 1000);
+  }
+}
+
+function checkSuccess() {
+  if (matched.length === animals.length) {
+    clearInterval(timerInterval);
+    document.getElementById('finalTime').textContent = `Você levou ${seconds} segundos!`;
+
+    let best = localStorage.getItem('bestTime');
+    if (!best || seconds < best) {
+      localStorage.setItem('bestTime', seconds);
+      document.getElementById('bestTime').textContent = `Melhor tempo: ${seconds}s`;
+    }
+
+    document.getElementById('successModal').style.display = 'flex';
+  }
+}
+
+function restartGame() {
+  location.reload();
+}
+</script>
+
+</body>
+</html>

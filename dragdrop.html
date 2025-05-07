@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alimente ou Descarte</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f1f8e9;
+      overflow: hidden;
+      height: 100vh;
+    }
+    h1 {
+      text-align: center;
+      padding: 1em;
+      background: #33691e;
+      color: white;
+      margin: 0;
+      font-size: 3em;
+    }
+    #statusBar {
+      display: flex;
+      justify-content: center;
+      gap: 2em;
+      padding: 1em;
+      font-size: 1.5em;
+      background: #dcedc8;
+    }
+    #gameArea {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: calc(100vh - 150px);
+      margin-top: 50px;
+      padding: 1em;
+      max-width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #itemArea {
+      height: 40%;
+      position: relative;
+      margin-bottom: 2em;
+    }
+    #dropZoneArea {
+      display: flex;
+      justify-content: space-around;
+      gap: 1em;
+      align-items: center;
+      height: 30vh;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #c5e1a5;
+    }
+    .drop-zone {
+      width: 20vw;
+      height: 30vh;
+      text-align: center;
+      font-weight: bold;
+      font-size: 2.5em;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+      touch-action: manipulation;
+    }
+    .cobra { background: #795548; }
+    .tatu { background: #795548; }
+    .tamandua { background: #795548; }
+    .sabia { background: #795548; }
+    .lixeira { background: #795548; }
+    .item {
+      font-size: 3vw;
+      position: absolute;
+      width: 12vw;
+      height: 12vh;
+      background-color: #fff;
+      border: 2px solid #333;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 12vh;
+      font-weight: bold;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .drop-zone img {
+    max-width: 70%;
+    max-height: 30%;
+    display: block;
+    margin: 0 auto 0.2em auto;
+    }
+    .drop-zone div {
+    text-align: center;
+    font-size: 0.6em;
+    color: inherit;
+    }
+
+
+
+    #gameOver {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #ffffffcc;
+      padding: 2em;
+      font-size: 3em;
+      color: #d32f2f;
+      border: 3px solid #d32f2f;
+      border-radius: 10px;
+      display: none;
+      z-index: 20;
+    }
+    .feedback {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2em;
+      font-weight: bold;
+      z-index: 10;
+      display: none;
+    }
+    .btn-voltar {
+    display: inline-block;
+    margin: 1rem;
+    padding: 0.6rem 1rem;
+    background-color: #d7ccc8;
+    color: #4e342e;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 8px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    transition: background 0.3s, transform 0.2s;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .btn-voltar:hover {
+    background-color: #a1887f;
+    color: #fff;
+    transform: scale(1.05);
+  }
+    .correct { color: #4caf50; }
+    .wrong { color: #f44336; }
+  </style>
+</head>
+<body>
+  
+
+<h1>Alimente ou Descarte!</h1><a href="index.html" class="btn-voltar">← Voltar</a>
+
+<div id="statusBar">
+  
+  <div id="vidas">❤️ Vidas: 3</div>
+  <div id="pontos">⭐ Pontos: 0</div>
+  <div id="timer">⏱️ Tempo: 60s</div>
+</div>
+
+<div id="gameArea">
+  <div id="itemArea"></div>
+</div>
+
+<!-- Substitua apenas esta parte no SEU código atual -->
+
+<div id="dropZoneArea">
+    <div class="drop-zone cobra" data-target="cobra">
+      <div>
+        <img src="/assets/animais/cascavel.png" alt="Cobra">
+        <div>Cobra</div>
+      </div>
+    </div>
+    <div class="drop-zone tatu" data-target="tatu">
+      <div>
+        <img src="/assets/animais/tatu.png" alt="Tatu">
+        <div>Tatu</div>
+      </div>
+    </div>
+    <div class="drop-zone tamandua" data-target="tamandua">
+      <div>
+        <img src="/assets/animais/tamandua.png" alt="Tamanduá">
+        <div>Tamanduá</div>
+      </div>
+    </div>
+    <div class="drop-zone sabia" data-target="sabia">
+      <div>
+        <img src="/assets/animais/sabia.png" alt="Sabiá">
+        <div>Sabiá</div>
+      </div>
+    </div>
+    <div class="drop-zone lixeira" data-target="lixeira">
+      <div>
+        <img src="assets/lixeira.png" alt="Lixeira">
+        <div>Lixeira</div>
+      </div>
+    </div>
+  </div>
+  
+
+<div id="gameOver">Fim de Jogo! 🛑</div>
+
+<div class="feedback correct">✔️ Acertou!</div>
+<div class="feedback wrong">❌ Errou!</div>
+
+<script>
+  const itemsList = [
+    { name: 'Rato', target: 'cobra', emoji: '🐀' },
+    { name: 'Fruta', target: 'sabia', emoji: '🍎' },
+    { name: 'Formiga', target: 'tamandua', emoji: '🐜' },
+    { name: 'Minhoca', target: 'tatu', emoji: '🪱' },
+    { name: 'Lata', target: 'lixeira', emoji: '🥫' },
+    { name: 'Garrafa', target: 'lixeira', emoji: '🍶' },
+    { name: 'Peixe', target: 'sabia', emoji: '🐟' },
+  ];
+
+  const itemArea = document.getElementById('itemArea');
+  const dropZoneArea = document.getElementById('dropZoneArea');
+  const vidasDisplay = document.getElementById('vidas');
+  const pontosDisplay = document.getElementById('pontos');
+  const timerDisplay = document.getElementById('timer');
+  const gameOverDisplay = document.getElementById('gameOver');
+  const correctFeedback = document.querySelector('.feedback.correct');
+  const wrongFeedback = document.querySelector('.feedback.wrong');
+
+  let vidas = 3;
+  let pontos = 0;
+  let tempo = 60;
+  let gameRunning = true;
+
+  function updateVidas() {
+    vidasDisplay.textContent = `❤️ Vidas: ${vidas}`;
+    if (vidas <= 0) gameOver();
+  }
+
+  function updatePontos() {
+    pontosDisplay.textContent = `⭐ Pontos: ${pontos}`;
+  }
+
+  function updateTimer() {
+    timerDisplay.textContent = `⏱️ Tempo: ${tempo}s`;
+    if (tempo <= 0) gameOver();
+  }
+
+  function gameOver() {
+    gameRunning = false;
+    clearInterval(spawnInterval);
+    clearInterval(timerInterval);
+    gameOverDisplay.style.display = 'block';
+  }
+
+  function showFeedback(isCorrect) {
+    const feedback = isCorrect ? correctFeedback : wrongFeedback;
+    feedback.style.display = 'block';
+    setTimeout(() => feedback.style.display = 'none', 1000);
+  }
+
+  function spawnItem() {
+    if (!gameRunning) return;
+
+    const itemData = itemsList[Math.floor(Math.random() * itemsList.length)];
+    const item = document.createElement('div');
+    item.classList.add('item');
+    item.textContent = itemData.emoji;
+    item.setAttribute('data-target', itemData.target);
+
+    let posX = 0;
+    let posY = Math.random() * (itemArea.offsetHeight - 80);
+    item.style.left = `${posX}px`;
+    item.style.top = `${posY}px`;
+
+    // Velocidade entre 1.5 e 4 (mais rápido = mais pontos)
+    let velocidade = Math.random() * 2.5 + 1.5;
+    let moving = true;
+
+    function moveRight() {
+      if (!moving || !gameRunning) return;
+
+      posX += velocidade;
+      item.style.left = `${posX}px`;
+
+      if (posX > itemArea.offsetWidth - 50) {
+        item.remove();
+        vidas--;
+        updateVidas();
+        showFeedback(false);
+        return;
+      }
+
+      requestAnimationFrame(moveRight);
+    }
+
+    requestAnimationFrame(moveRight);
+
+    let offsetX, offsetY;
+
+    item.addEventListener('touchstart', (e) => {
+      moving = false;
+      const touchStart = e.touches[0];
+      offsetX = touchStart.pageX - item.getBoundingClientRect().left;
+      offsetY = touchStart.pageY - item.getBoundingClientRect().top;
+
+      item.addEventListener('touchmove', touchMoveHandler);
+      item.addEventListener('touchend', touchEndHandler);
+    });
+
+    function touchMoveHandler(e) {
+      const touchMove = e.touches[0];
+      const newLeft = touchMove.pageX - offsetX;
+      const newTop = touchMove.pageY - offsetY;
+      item.style.left = `${newLeft}px`;
+      item.style.top = `${newTop - 250}px`;
+    }
+
+    function touchEndHandler() {
+      const target = item.getAttribute('data-target');
+      const zone = dropZoneArea.querySelector(`[data-target="${target}"]`);
+
+      if (zone && isInDropZone(item, zone)) {
+        const pontosGanhos = Math.round(velocidade * 10);
+        pontos += pontosGanhos;
+        updatePontos();
+        showFeedback(true);
+      } else {
+        vidas--;
+        updateVidas();
+        showFeedback(false);
+      }
+
+      item.removeEventListener('touchmove', touchMoveHandler);
+      item.removeEventListener('touchend', touchEndHandler);
+      item.remove();
+    }
+
+    itemArea.appendChild(item);
+  }
+
+  function isInDropZone(item, zone) {
+    const zoneRect = zone.getBoundingClientRect();
+    const itemRect = item.getBoundingClientRect();
+
+    const horizontalOverlap =
+      itemRect.right > zoneRect.left && itemRect.left < zoneRect.right;
+    const verticalOverlap =
+      itemRect.bottom > zoneRect.top && itemRect.top < zoneRect.bottom;
+
+    return horizontalOverlap && verticalOverlap;
+  }
+
+  const spawnInterval = setInterval(() => {
+    if (gameRunning) spawnItem();
+  }, 2500);
+
+  const timerInterval = setInterval(() => {
+    if (!gameRunning) return;
+    tempo--;
+    updateTimer();
+  }, 1000);
+
+  updateVidas();
+  updatePontos();
+  updateTimer();
+</script>
+
+</body>
+</html>
